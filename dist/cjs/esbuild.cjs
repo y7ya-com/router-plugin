@@ -2,7 +2,6 @@ Object.defineProperties(exports, {
 	__esModule: { value: true },
 	[Symbol.toStringTag]: { value: "Module" }
 });
-require("./_virtual/_rolldown/runtime.cjs");
 const require_config = require("./core/config.cjs");
 const require_router_plugin_context = require("./core/router-plugin-context.cjs");
 const require_router_code_splitter_plugin = require("./core/router-code-splitter-plugin.cjs");

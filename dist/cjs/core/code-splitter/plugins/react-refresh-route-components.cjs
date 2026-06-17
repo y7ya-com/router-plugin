@@ -1,7 +1,7 @@
 const require_runtime = require("../../../_virtual/_rolldown/runtime.cjs");
 const require_utils = require("../../utils.cjs");
 let _babel_types = require("@babel/types");
-_babel_types = require_runtime.__toESM(_babel_types);
+_babel_types = require_runtime.__toESM(_babel_types, 1);
 //#region src/core/code-splitter/plugins/react-refresh-route-components.ts
 var REACT_REFRESH_ROUTE_COMPONENT_IDENTS = new Set([
 	"component",

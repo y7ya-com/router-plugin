@@ -1,12 +1,11 @@
 import { getConfig, splitGroupingsSchema } from "./config.js";
 import { defaultCodeSplitGroupings, splitRouteIdentNodes, tsrShared, tsrSplit } from "./constants.js";
-import { debug, normalizePath } from "./utils.js";
-import { decodeIdentifier } from "./code-splitter/path-ids.js";
+import { debug, normalizePath, routeFactoryCallCodeFilter } from "./utils.js";
 import { compileCodeSplitReferenceRoute, compileCodeSplitSharedRoute, compileCodeSplitVirtualRoute, computeSharedBindings, detectCodeSplitGroupingsFromRoute } from "./code-splitter/compilers.js";
 import { getReferenceRouteCompilerPlugins } from "./code-splitter/plugins/framework-plugins.js";
 import { createRouterPluginContext } from "./router-plugin-context.js";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { logDiff } from "@tanstack/router-utils";
+import { decodeIdentifier, logDiff } from "@tanstack/router-utils";
 //#region src/core/router-code-splitter-plugin.ts
 /**
 * It is important to familiarize yourself with how the code-splitting works in this plugin.
@@ -65,7 +64,7 @@ function createRouterCodeSplitterPlugin(options = {}, routerPluginContext) {
 		if (fromCode.groupings !== void 0) {
 			const res = splitGroupingsSchema.safeParse(fromCode.groupings);
 			if (!res.success) {
-				const message = res.error.errors.map((e) => e.message).join(". ");
+				const message = res.error.issues.map((e) => e.message).join(". ");
 				throw new Error(`The groupings for the route "${id}" are invalid.\n${message}`);
 			}
 		}
@@ -73,7 +72,7 @@ function createRouterCodeSplitterPlugin(options = {}, routerPluginContext) {
 		if (pluginSplitBehavior) {
 			const res = splitGroupingsSchema.safeParse(pluginSplitBehavior);
 			if (!res.success) {
-				const message = res.error.errors.map((e) => e.message).join(". ");
+				const message = res.error.issues.map((e) => e.message).join(". ");
 				throw new Error(`The groupings returned when using \`splitBehavior\` for the route "${id}" are invalid.\n${message}`);
 			}
 		}
@@ -98,11 +97,11 @@ function createRouterCodeSplitterPlugin(options = {}, routerPluginContext) {
 			hmrStyle,
 			hmrRouteId: generatorNodeInfo.routeId,
 			sharedBindings: sharedBindings.size > 0 ? sharedBindings : void 0,
-			compilerPlugins: getReferenceRouteCompilerPlugins({
+			compilerPlugins: [...getReferenceRouteCompilerPlugins({
 				targetFramework: userConfig.target,
 				addHmr,
 				hmrStyle
-			})
+			}) ?? [], ...userConfig.codeSplittingOptions?.compilerPlugins ?? []]
 		});
 		if (compiledReferenceRoute === null) {
 			if (debug) console.info(`No changes made to route "${id}", skipping code-splitting.`);
@@ -134,11 +133,6 @@ function createRouterCodeSplitterPlugin(options = {}, routerPluginContext) {
 		}
 		return result;
 	};
-	const includedCode = [
-		"createFileRoute(",
-		"createRootRoute(",
-		"createRootRouteWithContext("
-	];
 	return [
 		{
 			name: "tanstack-router:code-splitter:compile-reference-file",
@@ -149,12 +143,12 @@ function createRouterCodeSplitterPlugin(options = {}, routerPluginContext) {
 						exclude: [tsrSplit, tsrShared],
 						include: /\.(m|c)?(j|t)sx?$/
 					},
-					code: { include: includedCode }
+					code: { include: routeFactoryCallCodeFilter }
 				},
 				handler(code, id) {
 					const normalizedId = normalizePath(id);
 					const generatorFileInfo = routerPluginContext.routesByFile.get(normalizedId);
-					if (generatorFileInfo && includedCode.some((included) => code.includes(included))) return handleCompilingReferenceFile(code, normalizedId, generatorFileInfo);
+					if (generatorFileInfo) return handleCompilingReferenceFile(code, normalizedId, generatorFileInfo);
 					return null;
 				}
 			},

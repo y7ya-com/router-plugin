@@ -1,9 +1,9 @@
 const require_runtime = require("../../../_virtual/_rolldown/runtime.cjs");
 const require_utils = require("../../utils.cjs");
 let _babel_types = require("@babel/types");
-_babel_types = require_runtime.__toESM(_babel_types);
+_babel_types = require_runtime.__toESM(_babel_types, 1);
 let _babel_template = require("@babel/template");
-_babel_template = require_runtime.__toESM(_babel_template);
+_babel_template = require_runtime.__toESM(_babel_template, 1);
 //#region src/core/code-splitter/plugins/react-stable-hmr-split-route-components.ts
 function capitalizeIdentifier(str) {
 	return str[0].toUpperCase() + str.slice(1);

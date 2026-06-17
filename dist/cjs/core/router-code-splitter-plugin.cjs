@@ -1,8 +1,6 @@
-require("../_virtual/_rolldown/runtime.cjs");
 const require_config = require("./config.cjs");
 const require_constants = require("./constants.cjs");
 const require_utils = require("./utils.cjs");
-const require_path_ids = require("./code-splitter/path-ids.cjs");
 const require_compilers = require("./code-splitter/compilers.cjs");
 const require_framework_plugins = require("./code-splitter/plugins/framework-plugins.cjs");
 const require_router_plugin_context = require("./router-plugin-context.cjs");
@@ -66,7 +64,7 @@ function createRouterCodeSplitterPlugin(options = {}, routerPluginContext) {
 		if (fromCode.groupings !== void 0) {
 			const res = require_config.splitGroupingsSchema.safeParse(fromCode.groupings);
 			if (!res.success) {
-				const message = res.error.errors.map((e) => e.message).join(". ");
+				const message = res.error.issues.map((e) => e.message).join(". ");
 				throw new Error(`The groupings for the route "${id}" are invalid.\n${message}`);
 			}
 		}
@@ -74,7 +72,7 @@ function createRouterCodeSplitterPlugin(options = {}, routerPluginContext) {
 		if (pluginSplitBehavior) {
 			const res = require_config.splitGroupingsSchema.safeParse(pluginSplitBehavior);
 			if (!res.success) {
-				const message = res.error.errors.map((e) => e.message).join(". ");
+				const message = res.error.issues.map((e) => e.message).join(". ");
 				throw new Error(`The groupings returned when using \`splitBehavior\` for the route "${id}" are invalid.\n${message}`);
 			}
 		}
@@ -99,11 +97,11 @@ function createRouterCodeSplitterPlugin(options = {}, routerPluginContext) {
 			hmrStyle,
 			hmrRouteId: generatorNodeInfo.routeId,
 			sharedBindings: sharedBindings.size > 0 ? sharedBindings : void 0,
-			compilerPlugins: require_framework_plugins.getReferenceRouteCompilerPlugins({
+			compilerPlugins: [...require_framework_plugins.getReferenceRouteCompilerPlugins({
 				targetFramework: userConfig.target,
 				addHmr,
 				hmrStyle
-			})
+			}) ?? [], ...userConfig.codeSplittingOptions?.compilerPlugins ?? []]
 		});
 		if (compiledReferenceRoute === null) {
 			if (require_utils.debug) console.info(`No changes made to route "${id}", skipping code-splitting.`);
@@ -120,7 +118,7 @@ function createRouterCodeSplitterPlugin(options = {}, routerPluginContext) {
 		const [_, ...pathnameParts] = id.split("?");
 		const splitValue = new URLSearchParams(pathnameParts.join("?")).get(require_constants.tsrSplit);
 		if (!splitValue) throw new Error(`The split value for the virtual route "${id}" was not found.`);
-		const rawGrouping = require_path_ids.decodeIdentifier(splitValue);
+		const rawGrouping = (0, _tanstack_router_utils.decodeIdentifier)(splitValue);
 		const grouping = [...new Set(rawGrouping)].filter((p) => require_constants.splitRouteIdentNodes.includes(p));
 		const baseId = id.split("?")[0];
 		const result = require_compilers.compileCodeSplitVirtualRoute({
@@ -135,11 +133,6 @@ function createRouterCodeSplitterPlugin(options = {}, routerPluginContext) {
 		}
 		return result;
 	};
-	const includedCode = [
-		"createFileRoute(",
-		"createRootRoute(",
-		"createRootRouteWithContext("
-	];
 	return [
 		{
 			name: "tanstack-router:code-splitter:compile-reference-file",
@@ -150,12 +143,12 @@ function createRouterCodeSplitterPlugin(options = {}, routerPluginContext) {
 						exclude: [require_constants.tsrSplit, require_constants.tsrShared],
 						include: /\.(m|c)?(j|t)sx?$/
 					},
-					code: { include: includedCode }
+					code: { include: require_utils.routeFactoryCallCodeFilter }
 				},
 				handler(code, id) {
 					const normalizedId = require_utils.normalizePath(id);
 					const generatorFileInfo = routerPluginContext.routesByFile.get(normalizedId);
-					if (generatorFileInfo && includedCode.some((included) => code.includes(included))) return handleCompilingReferenceFile(code, normalizedId, generatorFileInfo);
+					if (generatorFileInfo) return handleCompilingReferenceFile(code, normalizedId, generatorFileInfo);
 					return null;
 				}
 			},

@@ -1,6 +1,6 @@
 import { getConfig } from "./config.js";
 import { createRouteHmrStatement } from "./hmr/select-adapter.js";
-import { debug, normalizePath } from "./utils.js";
+import { debug, normalizePath, routeFactoryCallCodeFilter } from "./utils.js";
 import { compileCodeSplitReferenceRoute } from "./code-splitter/compilers.js";
 import { getReferenceRouteCompilerPlugins } from "./code-splitter/plugins/framework-plugins.js";
 import { generateFromAst, logDiff, parseAst } from "@tanstack/router-utils";
@@ -10,11 +10,6 @@ import { generateFromAst, logDiff, parseAst } from "@tanstack/router-utils";
 * It is only added to the composed plugin in dev when autoCodeSplitting is disabled, since the code splitting plugin
 * handles HMR for code-split routes itself.
 */
-var includeCode = [
-	"createFileRoute(",
-	"createRootRoute(",
-	"createRootRouteWithContext("
-];
 function createRouterHmrPlugin(options = {}, routerPluginContext) {
 	let ROOT = process.cwd();
 	const resolveUserConfig = () => {
@@ -27,7 +22,7 @@ function createRouterHmrPlugin(options = {}, routerPluginContext) {
 		transform: {
 			filter: {
 				id: /\.(m|c)?(j|t)sx?$/,
-				code: { include: includeCode }
+				code: { include: routeFactoryCallCodeFilter }
 			},
 			handler(code, id) {
 				const normalizedId = normalizePath(id);

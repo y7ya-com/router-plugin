@@ -89,7 +89,7 @@ function createRouterGeneratorPlugin(options = {}, routerPluginContext) {
 				if (handle) await handle.close();
 			});
 			compiler.hooks.done.tap(PLUGIN_NAME, () => {
-				console.info("✅ " + PLUGIN_NAME + ": route-tree generation done");
+				console.info("✅ unplugin:router-generator: route-tree generation done");
 			});
 		},
 		esbuild: { config() {

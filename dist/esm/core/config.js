@@ -15,7 +15,7 @@ var splitGroupingsSchema = z.array(z.array(z.union([
 	});
 });
 var codeSplittingOptionsSchema = z.object({
-	splitBehavior: z.function().optional(),
+	splitBehavior: z.custom((value) => typeof value === "function").optional(),
 	defaultBehavior: splitGroupingsSchema.optional(),
 	deleteNodes: z.array(z.string()).optional(),
 	addHmr: z.boolean().optional().default(true)
