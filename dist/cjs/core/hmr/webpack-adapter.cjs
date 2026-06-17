@@ -1,7 +1,7 @@
 const require_runtime = require("../../_virtual/_rolldown/runtime.cjs");
 const require_handle_route_update = require("./handle-route-update.cjs");
 let _babel_template = require("@babel/template");
-_babel_template = require_runtime.__toESM(_babel_template);
+_babel_template = require_runtime.__toESM(_babel_template, 1);
 //#region src/core/hmr/webpack-adapter.ts
 /**
 * Emits HMR accept code for bundlers with webpack-compatible `module.hot`

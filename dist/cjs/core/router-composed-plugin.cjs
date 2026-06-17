@@ -1,4 +1,3 @@
-require("../_virtual/_rolldown/runtime.cjs");
 const require_router_plugin_context = require("./router-plugin-context.cjs");
 const require_router_code_splitter_plugin = require("./router-code-splitter-plugin.cjs");
 const require_router_generator_plugin = require("./router-generator-plugin.cjs");

@@ -1,14 +1,14 @@
 const require_runtime = require("../../../_virtual/_rolldown/runtime.cjs");
 const require_utils = require("../../utils.cjs");
 let _babel_types = require("@babel/types");
-_babel_types = require_runtime.__toESM(_babel_types);
+_babel_types = require_runtime.__toESM(_babel_types, 1);
 let _babel_template = require("@babel/template");
-_babel_template = require_runtime.__toESM(_babel_template);
+_babel_template = require_runtime.__toESM(_babel_template, 1);
 //#region src/core/code-splitter/plugins/react-refresh-ignored-route-exports.ts
 var buildReactRefreshIgnoredRouteExportsStatements = _babel_template.statements(`
 const hot = import.meta.hot
 if (hot && typeof window !== 'undefined') {
-  ;(hot.data ??= {})
+  hot.data ??= {}
   const tsrReactRefresh = window.__TSR_REACT_REFRESH__ ??= (() => {
     const ignoredExportsById = new Map()
     const previousGetIgnoredExports = window.__getReactRefreshIgnoredExports

@@ -1,9 +1,8 @@
 import { tsrShared, tsrSplit } from "../constants.js";
 import { createRouteHmrStatement } from "../hmr/select-adapter.js";
 import { getObjectPropertyKeyName } from "../utils.js";
-import { createIdentifier } from "./path-ids.js";
 import { getFrameworkOptions } from "./framework-options.js";
-import { deadCodeElimination, findReferencedIdentifiers, generateFromAst, parseAst } from "@tanstack/router-utils";
+import { buildDeclarationMap, buildDependencyGraph, collectIdentifiersFromPattern, collectLocalBindingsFromStatement, collectModuleLevelRefsFromNode, createIdentifier, deadCodeElimination, expandDestructuredDeclarations, expandSharedDestructuredDeclarators, expandTransitively, findReferencedIdentifiers, generateFromAst, parseAst, removeBindingsTransitivelyDependingOn, retainModuleLevelDeclarations, stripUnreferencedTopLevelExpressionStatements, unwrapExportedDeclarations } from "@tanstack/router-utils";
 import * as t from "@babel/types";
 import * as babel from "@babel/core";
 import * as template from "@babel/template";
@@ -63,69 +62,6 @@ function addSharedSearchParamToFilename(filename) {
 var splittableCreateRouteFns = ["createFileRoute"];
 var unsplittableCreateRouteFns = ["createRootRoute", "createRootRouteWithContext"];
 var allCreateRouteFns = [...splittableCreateRouteFns, ...unsplittableCreateRouteFns];
-/**
-* Recursively walk an AST node and collect referenced identifier-like names.
-* Much cheaper than babel.traverse — no path/scope overhead.
-*
-* Notes:
-* - Uses @babel/types `isReferenced` to avoid collecting non-references like
-*   object keys, member expression properties, or binding identifiers.
-* - Also handles JSX identifiers for component references.
-*/
-function collectIdentifiersFromNode(node) {
-	const ids = /* @__PURE__ */ new Set();
-	(function walk(n, parent, grandparent, parentKey) {
-		if (!n) return;
-		if (t.isIdentifier(n)) {
-			if (!parent || t.isReferenced(n, parent, grandparent)) ids.add(n.name);
-			return;
-		}
-		if (t.isJSXIdentifier(n)) {
-			if (parent && t.isJSXAttribute(parent) && parentKey === "name") return;
-			if (parent && t.isJSXMemberExpression(parent) && parentKey === "property") return;
-			const first = n.name[0];
-			if (first && first === first.toLowerCase()) return;
-			ids.add(n.name);
-			return;
-		}
-		for (const key of t.VISITOR_KEYS[n.type] || []) {
-			const child = n[key];
-			if (Array.isArray(child)) {
-				for (const c of child) if (c && typeof c.type === "string") walk(c, n, parent, key);
-			} else if (child && typeof child.type === "string") walk(child, n, parent, key);
-		}
-	})(node);
-	return ids;
-}
-/**
-* Build a map from binding name → declaration AST node for all
-* locally-declared module-level bindings. Built once, O(1) lookup.
-*/
-function buildDeclarationMap(ast) {
-	const map = /* @__PURE__ */ new Map();
-	for (const stmt of ast.program.body) {
-		const decl = t.isExportNamedDeclaration(stmt) && stmt.declaration ? stmt.declaration : stmt;
-		if (t.isVariableDeclaration(decl)) for (const declarator of decl.declarations) for (const name of collectIdentifiersFromPattern(declarator.id)) map.set(name, declarator);
-		else if (t.isFunctionDeclaration(decl) && decl.id) map.set(decl.id.name, decl);
-		else if (t.isClassDeclaration(decl) && decl.id) map.set(decl.id.name, decl);
-	}
-	return map;
-}
-/**
-* Build a dependency graph: for each local binding, the set of other local
-* bindings its declaration references. Built once via simple node walking.
-*/
-function buildDependencyGraph(declMap, localBindings) {
-	const graph = /* @__PURE__ */ new Map();
-	for (const [name, declNode] of declMap) {
-		if (!localBindings.has(name)) continue;
-		const allIds = collectIdentifiersFromNode(declNode);
-		const deps = /* @__PURE__ */ new Set();
-		for (const id of allIds) if (id !== name && localBindings.has(id)) deps.add(id);
-		graph.set(name, deps);
-	}
-	return graph;
-}
 /**
 * Computes module-level bindings that are shared between split and non-split
 * route properties. These bindings need to be extracted into a shared virtual
@@ -202,115 +138,8 @@ function computeSharedBindings(opts) {
 	expandSharedDestructuredDeclarators(ast, refsByGroup, shared);
 	if (shared.size === 0) return shared;
 	expandDestructuredDeclarations(ast, shared);
-	removeBindingsDependingOnRoute(shared, fullDepGraph);
+	removeBindingsTransitivelyDependingOn(shared, fullDepGraph, ["Route"]);
 	return shared;
-}
-/**
-* If bindings from the same destructured declarator are referenced by
-* different groups, mark all bindings from that declarator as shared.
-*/
-function expandSharedDestructuredDeclarators(ast, refsByGroup, shared) {
-	for (const stmt of ast.program.body) {
-		const decl = t.isExportNamedDeclaration(stmt) && stmt.declaration ? stmt.declaration : stmt;
-		if (!t.isVariableDeclaration(decl)) continue;
-		for (const declarator of decl.declarations) {
-			if (!t.isObjectPattern(declarator.id) && !t.isArrayPattern(declarator.id)) continue;
-			const names = collectIdentifiersFromPattern(declarator.id);
-			const usedGroups = /* @__PURE__ */ new Set();
-			for (const name of names) {
-				const groups = refsByGroup.get(name);
-				if (!groups) continue;
-				for (const g of groups) usedGroups.add(g);
-			}
-			if (usedGroups.size >= 2) for (const name of names) shared.add(name);
-		}
-	}
-}
-/**
-* Collect locally-declared module-level binding names from a statement.
-* Pure node inspection, no traversal.
-*/
-function collectLocalBindingsFromStatement(node, bindings) {
-	const decl = t.isExportNamedDeclaration(node) && node.declaration ? node.declaration : node;
-	if (t.isVariableDeclaration(decl)) for (const declarator of decl.declarations) for (const name of collectIdentifiersFromPattern(declarator.id)) bindings.add(name);
-	else if (t.isFunctionDeclaration(decl) && decl.id) bindings.add(decl.id.name);
-	else if (t.isClassDeclaration(decl) && decl.id) bindings.add(decl.id.name);
-}
-/**
-* Collect direct module-level binding names referenced from a given AST node.
-* Uses a simple recursive walk instead of babel.traverse.
-*/
-function collectModuleLevelRefsFromNode(node, localModuleLevelBindings) {
-	const allIds = collectIdentifiersFromNode(node);
-	const refs = /* @__PURE__ */ new Set();
-	for (const name of allIds) if (localModuleLevelBindings.has(name)) refs.add(name);
-	return refs;
-}
-/**
-* Expand the shared set transitively using a prebuilt dependency graph.
-* No AST traversals — pure graph BFS.
-*/
-function expandTransitively(shared, depGraph) {
-	const queue = [...shared];
-	const visited = /* @__PURE__ */ new Set();
-	while (queue.length > 0) {
-		const name = queue.pop();
-		if (visited.has(name)) continue;
-		visited.add(name);
-		const deps = depGraph.get(name);
-		if (!deps) continue;
-		for (const dep of deps) if (!shared.has(dep)) {
-			shared.add(dep);
-			queue.push(dep);
-		}
-	}
-}
-/**
-* Remove any bindings from `shared` that transitively depend on `Route`.
-* The Route singleton must remain in the reference file; if a shared binding
-* references it (directly or transitively), extracting that binding would
-* duplicate Route in the shared module.
-*
-* Uses `depGraph` which must include `Route` as a node so the dependency
-* chain is visible.
-*/
-function removeBindingsDependingOnRoute(shared, depGraph) {
-	const reverseGraph = /* @__PURE__ */ new Map();
-	for (const [name, deps] of depGraph) for (const dep of deps) {
-		let parents = reverseGraph.get(dep);
-		if (!parents) {
-			parents = /* @__PURE__ */ new Set();
-			reverseGraph.set(dep, parents);
-		}
-		parents.add(name);
-	}
-	const visited = /* @__PURE__ */ new Set();
-	const queue = ["Route"];
-	while (queue.length > 0) {
-		const cur = queue.pop();
-		if (visited.has(cur)) continue;
-		visited.add(cur);
-		const parents = reverseGraph.get(cur);
-		if (!parents) continue;
-		for (const parent of parents) if (!visited.has(parent)) queue.push(parent);
-	}
-	for (const name of [...shared]) if (visited.has(name)) shared.delete(name);
-}
-/**
-* If any binding from a destructured declaration is shared,
-* ensure all bindings from that same declaration are also shared.
-* Pure node inspection of program.body, no traversal.
-*/
-function expandDestructuredDeclarations(ast, shared) {
-	for (const stmt of ast.program.body) {
-		const decl = t.isExportNamedDeclaration(stmt) && stmt.declaration ? stmt.declaration : stmt;
-		if (!t.isVariableDeclaration(decl)) continue;
-		for (const declarator of decl.declarations) {
-			if (!t.isObjectPattern(declarator.id) && !t.isArrayPattern(declarator.id)) continue;
-			const names = collectIdentifiersFromPattern(declarator.id);
-			if (names.some((n) => shared.has(n))) for (const n of names) shared.add(n);
-		}
-	}
 }
 /**
 * Find which shared bindings are user-exported in the original source.
@@ -408,6 +237,16 @@ function compileCodeSplitReferenceRoute(opts) {
 				};
 				if (t.isObjectExpression(routeOptions)) {
 					const insertionPath = path.getStatementParent() ?? path;
+					opts.compilerPlugins?.forEach((plugin) => {
+						if ((plugin.onRouteOptions?.({
+							programPath,
+							callExpressionPath: path,
+							insertionPath,
+							routeOptions,
+							createRouteFn,
+							opts
+						}))?.modified) modified = true;
+					});
 					if (opts.deleteNodes && opts.deleteNodes.size > 0) routeOptions.properties = routeOptions.properties.filter((prop) => {
 						if (t.isObjectProperty(prop)) {
 							const key = getObjectPropertyKeyName(prop);
@@ -683,14 +522,7 @@ function compileCodeSplitVirtualRoute(opts) {
 		}
 	} } });
 	deadCodeElimination(ast, refIdents);
-	{
-		const locallyBound = /* @__PURE__ */ new Set();
-		for (const stmt of ast.program.body) collectLocalBindingsFromStatement(stmt, locallyBound);
-		ast.program.body = ast.program.body.filter((stmt) => {
-			if (!t.isExpressionStatement(stmt)) return true;
-			return [...collectIdentifiersFromNode(stmt)].some((name) => locallyBound.has(name));
-		});
-	}
+	stripUnreferencedTopLevelExpressionStatements(ast);
 	if (ast.program.body.length === 0) ast.program.directives = [];
 	const result = generateFromAst(ast, {
 		sourceMaps: true,
@@ -715,24 +547,8 @@ function compileCodeSplitSharedRoute(opts) {
 	const keepBindings = new Set(opts.sharedBindings);
 	keepBindings.delete("Route");
 	expandTransitively(keepBindings, depGraph);
-	ast.program.body = ast.program.body.filter((stmt) => {
-		if (t.isImportDeclaration(stmt)) return true;
-		const decl = t.isExportNamedDeclaration(stmt) && stmt.declaration ? stmt.declaration : stmt;
-		if (t.isVariableDeclaration(decl)) {
-			decl.declarations = decl.declarations.filter((declarator) => {
-				return collectIdentifiersFromPattern(declarator.id).some((n) => keepBindings.has(n));
-			});
-			if (decl.declarations.length === 0) return false;
-			if (t.isExportNamedDeclaration(stmt) && stmt.declaration) return true;
-			return true;
-		} else if (t.isFunctionDeclaration(decl) && decl.id) return keepBindings.has(decl.id.name);
-		else if (t.isClassDeclaration(decl) && decl.id) return keepBindings.has(decl.id.name);
-		return false;
-	});
-	ast.program.body = ast.program.body.map((stmt) => {
-		if (t.isExportNamedDeclaration(stmt) && stmt.declaration) return stmt.declaration;
-		return stmt;
-	});
+	retainModuleLevelDeclarations(ast, keepBindings);
+	unwrapExportedDeclarations(ast);
 	const exportSpecifiers = [...opts.sharedBindings].sort((a, b) => a.localeCompare(b)).map((name) => t.exportSpecifier(t.identifier(name), t.identifier(name)));
 	if (exportSpecifiers.length > 0) {
 		const exportDecl = t.exportNamedDeclaration(null, exportSpecifiers);
@@ -815,23 +631,6 @@ function getImportSpecifierAndPathFromLocalName(programPath, name) {
 		specifier,
 		path
 	};
-}
-/**
-* Recursively collects all identifier names from a destructuring pattern
-* (ObjectPattern, ArrayPattern, AssignmentPattern, RestElement).
-*/
-function collectIdentifiersFromPattern(node) {
-	if (!node) return [];
-	if (t.isIdentifier(node)) return [node.name];
-	if (t.isAssignmentPattern(node)) return collectIdentifiersFromPattern(node.left);
-	if (t.isRestElement(node)) return collectIdentifiersFromPattern(node.argument);
-	if (t.isObjectPattern(node)) return node.properties.flatMap((prop) => {
-		if (t.isObjectProperty(prop)) return collectIdentifiersFromPattern(prop.value);
-		if (t.isRestElement(prop)) return collectIdentifiersFromPattern(prop.argument);
-		return [];
-	});
-	if (t.isArrayPattern(node)) return node.elements.flatMap((element) => collectIdentifiersFromPattern(element));
-	return [];
 }
 function resolveIdentifier(path, node) {
 	if (t.isIdentifier(node)) {

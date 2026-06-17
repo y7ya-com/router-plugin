@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { CreateFileRoute, RegisteredRouter, RouteIds } from '@tanstack/router-core';
 import { CodeSplitGroupings } from './constants.js';
-export declare const splitGroupingsSchema: z.ZodEffects<z.ZodArray<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"loader">, z.ZodLiteral<"component">, z.ZodLiteral<"pendingComponent">, z.ZodLiteral<"errorComponent">, z.ZodLiteral<"notFoundComponent">]>, "many">, "many">, ("loader" | "component" | "pendingComponent" | "errorComponent" | "notFoundComponent")[][], ("loader" | "component" | "pendingComponent" | "errorComponent" | "notFoundComponent")[][]>;
+export declare const splitGroupingsSchema: z.ZodArray<z.ZodArray<z.ZodUnion<readonly [z.ZodLiteral<"loader">, z.ZodLiteral<"component">, z.ZodLiteral<"pendingComponent">, z.ZodLiteral<"errorComponent">, z.ZodLiteral<"notFoundComponent">]>>>;
 export type CodeSplittingOptions = {
     /**
      * Use this function to programmatically control the code splitting behavior
@@ -42,192 +42,74 @@ export type HmrOptions = {
 type FileRouteKeys = keyof (Parameters<CreateFileRoute<any, any, any, any, any>>[0] & {});
 export type DeletableNodes = FileRouteKeys | (string & {});
 export declare const configSchema: z.ZodObject<{
-    target: z.ZodDefault<z.ZodOptional<z.ZodEnum<["react", "solid", "vue", "svelte"]>>>;
-    virtualRouteConfig: z.ZodOptional<z.ZodUnion<[z.ZodType<import('@tanstack/virtual-file-routes').VirtualRootRoute, z.ZodTypeDef, import('@tanstack/virtual-file-routes').VirtualRootRoute>, z.ZodString]>>;
+    target: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
+        vue: "vue";
+        react: "react";
+        solid: "solid";
+        svelte: "svelte";
+    }>>>;
+    virtualRouteConfig: z.ZodOptional<z.ZodUnion<[z.ZodType<import('@tanstack/virtual-file-routes').VirtualRootRoute, unknown, z.core.$ZodTypeInternals<import('@tanstack/virtual-file-routes').VirtualRootRoute, unknown>>, z.ZodString]>>;
     routeFilePrefix: z.ZodOptional<z.ZodString>;
     routeFileIgnorePrefix: z.ZodDefault<z.ZodOptional<z.ZodString>>;
     routeFileIgnorePattern: z.ZodOptional<z.ZodString>;
     routesDirectory: z.ZodDefault<z.ZodOptional<z.ZodString>>;
-    quoteStyle: z.ZodDefault<z.ZodOptional<z.ZodEnum<["single", "double"]>>>;
+    quoteStyle: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
+        single: "single";
+        double: "double";
+    }>>>;
     semicolons: z.ZodDefault<z.ZodOptional<z.ZodBoolean>>;
     disableLogging: z.ZodDefault<z.ZodOptional<z.ZodBoolean>>;
-    routeTreeFileHeader: z.ZodDefault<z.ZodOptional<z.ZodArray<z.ZodString, "many">>>;
-    indexToken: z.ZodDefault<z.ZodOptional<z.ZodUnion<[z.ZodString, z.ZodType<RegExp, z.ZodTypeDef, RegExp>, z.ZodObject<{
+    routeTreeFileHeader: z.ZodDefault<z.ZodOptional<z.ZodArray<z.ZodString>>>;
+    indexToken: z.ZodDefault<z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodCustom<RegExp, RegExp>, z.ZodObject<{
         regex: z.ZodString;
         flags: z.ZodOptional<z.ZodString>;
-    }, "strip", z.ZodTypeAny, {
-        regex: string;
-        flags?: string | undefined;
-    }, {
-        regex: string;
-        flags?: string | undefined;
-    }>]>>>;
-    routeToken: z.ZodDefault<z.ZodOptional<z.ZodUnion<[z.ZodString, z.ZodType<RegExp, z.ZodTypeDef, RegExp>, z.ZodObject<{
+    }, z.core.$strip>]>>>;
+    routeToken: z.ZodDefault<z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodCustom<RegExp, RegExp>, z.ZodObject<{
         regex: z.ZodString;
         flags: z.ZodOptional<z.ZodString>;
-    }, "strip", z.ZodTypeAny, {
-        regex: string;
-        flags?: string | undefined;
-    }, {
-        regex: string;
-        flags?: string | undefined;
-    }>]>>>;
-    pathParamsAllowedCharacters: z.ZodOptional<z.ZodArray<z.ZodEnum<[";", ":", "@", "&", "=", "+", "$", ","]>, "many">>;
-} & {
+    }, z.core.$strip>]>>>;
+    pathParamsAllowedCharacters: z.ZodOptional<z.ZodArray<z.ZodEnum<{
+        ":": ":";
+        $: "$";
+        ";": ";";
+        "@": "@";
+        "&": "&";
+        "=": "=";
+        "+": "+";
+        ",": ",";
+    }>>>;
     generatedRouteTree: z.ZodDefault<z.ZodOptional<z.ZodString>>;
     disableTypes: z.ZodDefault<z.ZodOptional<z.ZodBoolean>>;
-    addExtensions: z.ZodEffects<z.ZodDefault<z.ZodOptional<z.ZodUnion<[z.ZodBoolean, z.ZodString]>>>, string | boolean, string | boolean | undefined>;
+    addExtensions: z.ZodPipe<z.ZodDefault<z.ZodOptional<z.ZodUnion<readonly [z.ZodBoolean, z.ZodString]>>>, z.ZodTransform<string | boolean, string | boolean>>;
     enableRouteTreeFormatting: z.ZodDefault<z.ZodOptional<z.ZodBoolean>>;
-    routeTreeFileFooter: z.ZodOptional<z.ZodUnion<[z.ZodDefault<z.ZodOptional<z.ZodArray<z.ZodString, "many">>>, z.ZodFunction<z.ZodTuple<[], z.ZodUnknown>, z.ZodArray<z.ZodString, "many">>]>>;
+    routeTreeFileFooter: z.ZodOptional<z.ZodUnion<readonly [z.ZodDefault<z.ZodOptional<z.ZodArray<z.ZodString>>>, z.ZodCustom<() => Array<string>, () => Array<string>>]>>;
     autoCodeSplitting: z.ZodOptional<z.ZodBoolean>;
     customScaffolding: z.ZodOptional<z.ZodObject<{
         routeTemplate: z.ZodOptional<z.ZodString>;
         lazyRouteTemplate: z.ZodOptional<z.ZodString>;
-    }, "strip", z.ZodTypeAny, {
-        routeTemplate?: string | undefined;
-        lazyRouteTemplate?: string | undefined;
-    }, {
-        routeTemplate?: string | undefined;
-        lazyRouteTemplate?: string | undefined;
-    }>>;
+    }, z.core.$strip>>;
     experimental: z.ZodOptional<z.ZodObject<{
         enableCodeSplitting: z.ZodOptional<z.ZodBoolean>;
-    }, "strip", z.ZodTypeAny, {
-        enableCodeSplitting?: boolean | undefined;
-    }, {
-        enableCodeSplitting?: boolean | undefined;
-    }>>;
-    plugins: z.ZodOptional<z.ZodArray<z.ZodType<import('@tanstack/router-generator').GeneratorPlugin, z.ZodTypeDef, import('@tanstack/router-generator').GeneratorPlugin>, "many">>;
+    }, z.core.$strip>>;
+    plugins: z.ZodOptional<z.ZodArray<z.ZodCustom<import('@tanstack/router-generator').GeneratorPlugin, import('@tanstack/router-generator').GeneratorPlugin>>>;
     tmpDir: z.ZodDefault<z.ZodOptional<z.ZodString>>;
     importRoutesUsingAbsolutePaths: z.ZodDefault<z.ZodOptional<z.ZodBoolean>>;
-} & {
     enableRouteGeneration: z.ZodOptional<z.ZodBoolean>;
-    codeSplittingOptions: z.ZodOptional<z.ZodType<CodeSplittingOptions, z.ZodTypeDef, CodeSplittingOptions>>;
+    codeSplittingOptions: z.ZodOptional<z.ZodCustom<CodeSplittingOptions, CodeSplittingOptions>>;
     plugin: z.ZodOptional<z.ZodObject<{
         hmr: z.ZodOptional<z.ZodObject<{
-            style: z.ZodOptional<z.ZodEnum<["vite", "webpack"]>>;
-        }, "strip", z.ZodTypeAny, {
-            style?: "vite" | "webpack" | undefined;
-        }, {
-            style?: "vite" | "webpack" | undefined;
-        }>>;
+            style: z.ZodOptional<z.ZodEnum<{
+                vite: "vite";
+                webpack: "webpack";
+            }>>;
+        }, z.core.$strip>>;
         vite: z.ZodOptional<z.ZodObject<{
             environmentName: z.ZodOptional<z.ZodString>;
-        }, "strip", z.ZodTypeAny, {
-            environmentName?: string | undefined;
-        }, {
-            environmentName?: string | undefined;
-        }>>;
-    }, "strip", z.ZodTypeAny, {
-        vite?: {
-            environmentName?: string | undefined;
-        } | undefined;
-        hmr?: {
-            style?: "vite" | "webpack" | undefined;
-        } | undefined;
-    }, {
-        vite?: {
-            environmentName?: string | undefined;
-        } | undefined;
-        hmr?: {
-            style?: "vite" | "webpack" | undefined;
-        } | undefined;
-    }>>;
-}, "strip", z.ZodTypeAny, {
-    target: "react" | "solid" | "vue" | "svelte";
-    routeFileIgnorePrefix: string;
-    routesDirectory: string;
-    quoteStyle: "single" | "double";
-    semicolons: boolean;
-    disableLogging: boolean;
-    routeTreeFileHeader: string[];
-    indexToken: string | RegExp | {
-        regex: string;
-        flags?: string | undefined;
-    };
-    routeToken: string | RegExp | {
-        regex: string;
-        flags?: string | undefined;
-    };
-    generatedRouteTree: string;
-    disableTypes: boolean;
-    addExtensions: string | boolean;
-    enableRouteTreeFormatting: boolean;
-    tmpDir: string;
-    importRoutesUsingAbsolutePaths: boolean;
-    enableRouteGeneration?: boolean | undefined;
-    codeSplittingOptions?: CodeSplittingOptions | undefined;
-    plugin?: {
-        vite?: {
-            environmentName?: string | undefined;
-        } | undefined;
-        hmr?: {
-            style?: "vite" | "webpack" | undefined;
-        } | undefined;
-    } | undefined;
-    virtualRouteConfig?: string | import('@tanstack/virtual-file-routes').VirtualRootRoute | undefined;
-    routeFilePrefix?: string | undefined;
-    routeFileIgnorePattern?: string | undefined;
-    pathParamsAllowedCharacters?: (";" | ":" | "@" | "&" | "=" | "+" | "$" | ",")[] | undefined;
-    routeTreeFileFooter?: string[] | ((...args: unknown[]) => string[]) | undefined;
-    autoCodeSplitting?: boolean | undefined;
-    customScaffolding?: {
-        routeTemplate?: string | undefined;
-        lazyRouteTemplate?: string | undefined;
-    } | undefined;
-    experimental?: {
-        enableCodeSplitting?: boolean | undefined;
-    } | undefined;
-    plugins?: import('@tanstack/router-generator').GeneratorPlugin[] | undefined;
-}, {
-    enableRouteGeneration?: boolean | undefined;
-    codeSplittingOptions?: CodeSplittingOptions | undefined;
-    plugin?: {
-        vite?: {
-            environmentName?: string | undefined;
-        } | undefined;
-        hmr?: {
-            style?: "vite" | "webpack" | undefined;
-        } | undefined;
-    } | undefined;
-    target?: "react" | "solid" | "vue" | "svelte" | undefined;
-    virtualRouteConfig?: string | import('@tanstack/virtual-file-routes').VirtualRootRoute | undefined;
-    routeFilePrefix?: string | undefined;
-    routeFileIgnorePrefix?: string | undefined;
-    routeFileIgnorePattern?: string | undefined;
-    routesDirectory?: string | undefined;
-    quoteStyle?: "single" | "double" | undefined;
-    semicolons?: boolean | undefined;
-    disableLogging?: boolean | undefined;
-    routeTreeFileHeader?: string[] | undefined;
-    indexToken?: string | RegExp | {
-        regex: string;
-        flags?: string | undefined;
-    } | undefined;
-    routeToken?: string | RegExp | {
-        regex: string;
-        flags?: string | undefined;
-    } | undefined;
-    pathParamsAllowedCharacters?: (";" | ":" | "@" | "&" | "=" | "+" | "$" | ",")[] | undefined;
-    generatedRouteTree?: string | undefined;
-    disableTypes?: boolean | undefined;
-    addExtensions?: string | boolean | undefined;
-    enableRouteTreeFormatting?: boolean | undefined;
-    routeTreeFileFooter?: string[] | ((...args: unknown[]) => string[]) | undefined;
-    autoCodeSplitting?: boolean | undefined;
-    customScaffolding?: {
-        routeTemplate?: string | undefined;
-        lazyRouteTemplate?: string | undefined;
-    } | undefined;
-    experimental?: {
-        enableCodeSplitting?: boolean | undefined;
-    } | undefined;
-    plugins?: import('@tanstack/router-generator').GeneratorPlugin[] | undefined;
-    tmpDir?: string | undefined;
-    importRoutesUsingAbsolutePaths?: boolean | undefined;
-}>;
+        }, z.core.$strip>>;
+    }, z.core.$strip>>;
+}, z.core.$strip>;
 export declare const getConfig: (inlineConfig: Partial<Config>, root: string) => {
-    target: "react" | "solid" | "vue" | "svelte";
+    target: "vue" | "react" | "solid" | "svelte";
     routeFileIgnorePrefix: string;
     routesDirectory: string;
     quoteStyle: "single" | "double";
@@ -248,21 +130,11 @@ export declare const getConfig: (inlineConfig: Partial<Config>, root: string) =>
     enableRouteTreeFormatting: boolean;
     tmpDir: string;
     importRoutesUsingAbsolutePaths: boolean;
-    enableRouteGeneration?: boolean | undefined;
-    codeSplittingOptions?: CodeSplittingOptions | undefined;
-    plugin?: {
-        vite?: {
-            environmentName?: string | undefined;
-        } | undefined;
-        hmr?: {
-            style?: "vite" | "webpack" | undefined;
-        } | undefined;
-    } | undefined;
     virtualRouteConfig?: string | import('@tanstack/virtual-file-routes').VirtualRootRoute | undefined;
     routeFilePrefix?: string | undefined;
     routeFileIgnorePattern?: string | undefined;
-    pathParamsAllowedCharacters?: (";" | ":" | "@" | "&" | "=" | "+" | "$" | ",")[] | undefined;
-    routeTreeFileFooter?: string[] | ((...args: unknown[]) => string[]) | undefined;
+    pathParamsAllowedCharacters?: (":" | "$" | ";" | "@" | "&" | "=" | "+" | ",")[] | undefined;
+    routeTreeFileFooter?: string[] | (() => Array<string>) | undefined;
     autoCodeSplitting?: boolean | undefined;
     customScaffolding?: {
         routeTemplate?: string | undefined;
@@ -272,6 +144,16 @@ export declare const getConfig: (inlineConfig: Partial<Config>, root: string) =>
         enableCodeSplitting?: boolean | undefined;
     } | undefined;
     plugins?: import('@tanstack/router-generator').GeneratorPlugin[] | undefined;
+    enableRouteGeneration?: boolean | undefined;
+    codeSplittingOptions?: CodeSplittingOptions | undefined;
+    plugin?: {
+        hmr?: {
+            style?: "vite" | "webpack" | undefined;
+        } | undefined;
+        vite?: {
+            environmentName?: string | undefined;
+        } | undefined;
+    } | undefined;
 };
 export type Config = z.infer<typeof configSchema>;
 export type ConfigInput = z.input<typeof configSchema>;

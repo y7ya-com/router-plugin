@@ -38,6 +38,7 @@ export type ReferenceRouteCompilerPluginResult = {
 export type ReferenceRouteCompilerPlugin = {
     name: string;
     getStableRouteOptionKeys?: () => Array<string>;
+    onRouteOptions?: (ctx: ReferenceRouteCompilerPluginContext) => void | ReferenceRouteCompilerPluginResult;
     onAddHmr?: (ctx: ReferenceRouteCompilerPluginContext) => void | ReferenceRouteCompilerPluginResult;
     onUnsplittableRoute?: (ctx: ReferenceRouteCompilerPluginContext) => void | ReferenceRouteCompilerPluginResult;
     onSplitRouteProperty?: (ctx: ReferenceRouteSplitPropertyCompilerPluginContext) => void | t.Expression;

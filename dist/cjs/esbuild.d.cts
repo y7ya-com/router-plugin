@@ -31,7 +31,7 @@ declare const TanStackRouterCodeSplitterEsbuild: (options?: RouterPluginOptions,
  * ```
  */
 declare const TanStackRouterEsbuild: (options?: Partial<{
-    target: "react" | "solid" | "vue" | "svelte";
+    target: "vue" | "react" | "solid" | "svelte";
     routeFileIgnorePrefix: string;
     routesDirectory: string;
     quoteStyle: "single" | "double";
@@ -52,21 +52,11 @@ declare const TanStackRouterEsbuild: (options?: Partial<{
     enableRouteTreeFormatting: boolean;
     tmpDir: string;
     importRoutesUsingAbsolutePaths: boolean;
-    enableRouteGeneration?: boolean | undefined;
-    codeSplittingOptions?: CodeSplittingOptions | undefined;
-    plugin?: {
-        vite?: {
-            environmentName?: string | undefined;
-        } | undefined;
-        hmr?: {
-            style?: "vite" | "webpack" | undefined;
-        } | undefined;
-    } | undefined;
     virtualRouteConfig?: string | import('@tanstack/virtual-file-routes').VirtualRootRoute | undefined;
     routeFilePrefix?: string | undefined;
     routeFileIgnorePattern?: string | undefined;
-    pathParamsAllowedCharacters?: (";" | ":" | "@" | "&" | "=" | "+" | "$" | ",")[] | undefined;
-    routeTreeFileFooter?: string[] | ((...args: unknown[]) => string[]) | undefined;
+    pathParamsAllowedCharacters?: (":" | "$" | ";" | "@" | "&" | "=" | "+" | ",")[] | undefined;
+    routeTreeFileFooter?: string[] | (() => Array<string>) | undefined;
     autoCodeSplitting?: boolean | undefined;
     customScaffolding?: {
         routeTemplate?: string | undefined;
@@ -76,9 +66,19 @@ declare const TanStackRouterEsbuild: (options?: Partial<{
         enableCodeSplitting?: boolean | undefined;
     } | undefined;
     plugins?: import('@tanstack/router-generator').GeneratorPlugin[] | undefined;
+    enableRouteGeneration?: boolean | undefined;
+    codeSplittingOptions?: CodeSplittingOptions | undefined;
+    plugin?: {
+        hmr?: {
+            style?: "vite" | "webpack" | undefined;
+        } | undefined;
+        vite?: {
+            environmentName?: string | undefined;
+        } | undefined;
+    } | undefined;
 } | (() => Config)> | undefined) => import('unplugin').EsbuildPlugin;
 declare const tanstackRouter: (options?: Partial<{
-    target: "react" | "solid" | "vue" | "svelte";
+    target: "vue" | "react" | "solid" | "svelte";
     routeFileIgnorePrefix: string;
     routesDirectory: string;
     quoteStyle: "single" | "double";
@@ -99,21 +99,11 @@ declare const tanstackRouter: (options?: Partial<{
     enableRouteTreeFormatting: boolean;
     tmpDir: string;
     importRoutesUsingAbsolutePaths: boolean;
-    enableRouteGeneration?: boolean | undefined;
-    codeSplittingOptions?: CodeSplittingOptions | undefined;
-    plugin?: {
-        vite?: {
-            environmentName?: string | undefined;
-        } | undefined;
-        hmr?: {
-            style?: "vite" | "webpack" | undefined;
-        } | undefined;
-    } | undefined;
     virtualRouteConfig?: string | import('@tanstack/virtual-file-routes').VirtualRootRoute | undefined;
     routeFilePrefix?: string | undefined;
     routeFileIgnorePattern?: string | undefined;
-    pathParamsAllowedCharacters?: (";" | ":" | "@" | "&" | "=" | "+" | "$" | ",")[] | undefined;
-    routeTreeFileFooter?: string[] | ((...args: unknown[]) => string[]) | undefined;
+    pathParamsAllowedCharacters?: (":" | "$" | ";" | "@" | "&" | "=" | "+" | ",")[] | undefined;
+    routeTreeFileFooter?: string[] | (() => Array<string>) | undefined;
     autoCodeSplitting?: boolean | undefined;
     customScaffolding?: {
         routeTemplate?: string | undefined;
@@ -123,6 +113,16 @@ declare const tanstackRouter: (options?: Partial<{
         enableCodeSplitting?: boolean | undefined;
     } | undefined;
     plugins?: import('@tanstack/router-generator').GeneratorPlugin[] | undefined;
+    enableRouteGeneration?: boolean | undefined;
+    codeSplittingOptions?: CodeSplittingOptions | undefined;
+    plugin?: {
+        hmr?: {
+            style?: "vite" | "webpack" | undefined;
+        } | undefined;
+        vite?: {
+            environmentName?: string | undefined;
+        } | undefined;
+    } | undefined;
 } | (() => Config)> | undefined) => import('unplugin').EsbuildPlugin;
 export default TanStackRouterEsbuild;
 export { configSchema, TanStackRouterGeneratorEsbuild, TanStackRouterCodeSplitterEsbuild, TanStackRouterEsbuild, tanstackRouter, };

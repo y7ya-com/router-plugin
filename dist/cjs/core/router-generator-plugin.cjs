@@ -1,4 +1,3 @@
-require("../_virtual/_rolldown/runtime.cjs");
 const require_config = require("./config.cjs");
 const require_router_plugin_context = require("./router-plugin-context.cjs");
 let _tanstack_router_generator = require("@tanstack/router-generator");
@@ -90,7 +89,7 @@ function createRouterGeneratorPlugin(options = {}, routerPluginContext) {
 				if (handle) await handle.close();
 			});
 			compiler.hooks.done.tap(PLUGIN_NAME, () => {
-				console.info("✅ " + PLUGIN_NAME + ": route-tree generation done");
+				console.info("✅ unplugin:router-generator: route-tree generation done");
 			});
 		},
 		esbuild: { config() {

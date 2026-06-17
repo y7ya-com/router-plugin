@@ -11,6 +11,11 @@ var debug = process.env.TSR_VITE_DEBUG && ["true", "router-plugin"].includes(pro
 function normalizePath(path) {
 	return path.replace(/\\/g, "/");
 }
+var routeFactoryCallCodeFilter = [
+	/\bcreateFileRoute\s*\(/,
+	/\bcreateRootRoute\s*\(/,
+	/\bcreateRootRouteWithContext\s*(?:<|\()/
+];
 function getObjectPropertyKeyName(prop) {
 	if (prop.computed) return;
 	if (t.isIdentifier(prop.key)) return prop.key.name;
@@ -28,6 +33,6 @@ function getUniqueProgramIdentifier(programPath, baseName) {
 	return t.identifier(name);
 }
 //#endregion
-export { debug, getObjectPropertyKeyName, getUniqueProgramIdentifier, normalizePath };
+export { debug, getObjectPropertyKeyName, getUniqueProgramIdentifier, normalizePath, routeFactoryCallCodeFilter };
 
 //# sourceMappingURL=utils.js.map

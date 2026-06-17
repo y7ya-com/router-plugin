@@ -1,4 +1,3 @@
-require("../_virtual/_rolldown/runtime.cjs");
 const require_config = require("./config.cjs");
 const require_select_adapter = require("./hmr/select-adapter.cjs");
 const require_utils = require("./utils.cjs");
@@ -11,11 +10,6 @@ let _tanstack_router_utils = require("@tanstack/router-utils");
 * It is only added to the composed plugin in dev when autoCodeSplitting is disabled, since the code splitting plugin
 * handles HMR for code-split routes itself.
 */
-var includeCode = [
-	"createFileRoute(",
-	"createRootRoute(",
-	"createRootRouteWithContext("
-];
 function createRouterHmrPlugin(options = {}, routerPluginContext) {
 	let ROOT = process.cwd();
 	const resolveUserConfig = () => {
@@ -28,7 +22,7 @@ function createRouterHmrPlugin(options = {}, routerPluginContext) {
 		transform: {
 			filter: {
 				id: /\.(m|c)?(j|t)sx?$/,
-				code: { include: includeCode }
+				code: { include: require_utils.routeFactoryCallCodeFilter }
 			},
 			handler(code, id) {
 				const normalizedId = require_utils.normalizePath(id);

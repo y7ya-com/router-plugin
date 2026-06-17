@@ -1,4 +1,3 @@
-require("../_virtual/_rolldown/runtime.cjs");
 let zod = require("zod");
 let _tanstack_router_generator = require("@tanstack/router-generator");
 //#region src/core/config.ts
@@ -16,7 +15,7 @@ var splitGroupingsSchema = zod.z.array(zod.z.array(zod.z.union([
 	});
 });
 var codeSplittingOptionsSchema = zod.z.object({
-	splitBehavior: zod.z.function().optional(),
+	splitBehavior: zod.z.custom((value) => typeof value === "function").optional(),
 	defaultBehavior: splitGroupingsSchema.optional(),
 	deleteNodes: zod.z.array(zod.z.string()).optional(),
 	addHmr: zod.z.boolean().optional().default(true)
