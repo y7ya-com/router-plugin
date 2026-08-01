@@ -1,6 +1,6 @@
 {
   "name": "@tanstack/router-plugin",
-  "version": "0.0.5-experimental",
+  "version": "0.0.6-experimental",
   "description": "Modern and scalable routing for React applications",
   "author": "Tanner Linsley",
   "license": "MIT",
@@ -105,7 +105,7 @@
     "@babel/template": "^7.27.2",
     "@babel/types": "^7.28.5",
     "@tanstack/router-core": "^1.171.15",
-    "@tanstack/router-generator": "github:y7ya-com/router-generator#v0.0.5-experimental",
+    "@tanstack/router-generator": "github:y7ya-com/router-generator#v0.0.6-experimental",
     "@tanstack/router-utils": "^1.162.2",
     "chokidar": "^5.0.0",
     "unplugin": "^3.0.0",
