@@ -1,6 +1,6 @@
 {
   "name": "@tanstack/router-plugin",
-  "version": "0.0.6-experimental",
+  "version": "0.0.7-experimental",
   "description": "Modern and scalable routing for React applications",
   "author": "Tanner Linsley",
   "license": "MIT",
@@ -101,19 +101,19 @@
     "node": ">=20.19"
   },
   "dependencies": {
-    "@babel/core": "^7.28.5",
-    "@babel/template": "^7.27.2",
-    "@babel/types": "^7.28.5",
-    "@tanstack/router-core": "^1.171.15",
-    "@tanstack/router-generator": "github:y7ya-com/router-generator#v0.0.6-experimental",
-    "@tanstack/router-utils": "^1.162.2",
+    "@babel/core": "^7.29.7",
+    "@babel/template": "^7.29.7",
+    "@babel/types": "^7.29.8",
+    "@tanstack/router-core": "^1.171.34",
+    "@tanstack/router-generator": "github:y7ya-com/router-generator#v0.0.7-experimental",
+    "@tanstack/router-utils": "^1.162.3",
     "chokidar": "^5.0.0",
-    "unplugin": "^3.0.0",
-    "zod": "^4.4.3"
+    "unplugin": "^3.3.0",
+    "zod": "^4.5.4"
   },
   "peerDependencies": {
     "@rsbuild/core": ">=1.0.2 || ^2.0.0",
-    "@tanstack/react-router": "^1.170.18",
+    "@tanstack/react-router": "^1.170.41",
     "vite": ">=5.0.0 || >=6.0.0 || >=7.0.0 || >=8.0.0",
     "vite-plugin-solid": "^2.11.10 || ^3.0.0-0",
     "webpack": ">=5.92.0"
